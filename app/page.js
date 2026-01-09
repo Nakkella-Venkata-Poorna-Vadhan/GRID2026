@@ -1,65 +1,113 @@
-import Image from "next/image";
+'use client'
+import { useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 
-export default function Home() {
+export default function Login() {
+  const [id, setId] = useState('')
+  const [pass, setPass] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('user_id', id)
+      .eq('password', pass)
+      .single()
+
+    if (error || !data) {
+      setError('ACCESS DENIED // INVALID CREDENTIALS')
+      setLoading(false)
+      return
+    }
+
+    // Save session (basic)
+    if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(data))
+
+    if (data.role === 'admin') router.push('/admin')
+    if (data.role === 'student') router.push(`/student?id=${data.id}`)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-black text-white flex items-center justify-center font-sans overflow-hidden relative">
+      
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="z-10 w-full max-w-md"
+      >
+        <form onSubmit={handleLogin} className="backdrop-blur-xl bg-white/5 border border-white/10 p-8 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+          
+          {/* Scanning Line Animation */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50 group-hover:animate-scan"></div>
+
+          <div className="text-center mb-10">
+            <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 tracking-tighter mb-2">
+              HACK_OS
+            </h1>
+            <p className="text-gray-400 text-xs tracking-[0.3em] uppercase">Secure Event Protocol v2.0</p>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="relative group">
+              <input 
+                className="w-full bg-black/30 border border-white/10 rounded-lg p-4 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-black/50 transition-all placeholder-transparent peer"
+                value={id} onChange={(e) => setId(e.target.value.toUpperCase())} 
+                placeholder="Unit ID"
+                id="unit_id"
+              />
+              <label htmlFor="unit_id" className="absolute left-4 top-4 text-gray-500 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-cyan-400 peer-focus:bg-black/80 peer-focus:px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm">
+                UNIT ID
+              </label>
+            </div>
+
+            <div className="relative group">
+              <input 
+                type="password"
+                className="w-full bg-black/30 border border-white/10 rounded-lg p-4 text-white focus:outline-none focus:border-purple-500/50 focus:bg-black/50 transition-all placeholder-transparent peer"
+                value={pass} onChange={(e) => setPass(e.target.value)} 
+                placeholder="Passcode"
+                id="passcode"
+              />
+              <label htmlFor="passcode" className="absolute left-4 top-4 text-gray-500 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-purple-400 peer-focus:bg-black/80 peer-focus:px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm">
+                PASSCODE
+              </label>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-6 p-3 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-xs text-center font-mono">
+              {error}
+            </div>
+          )}
+
+          <button 
+            disabled={loading}
+            className="w-full mt-8 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold p-4 rounded-lg shadow-lg shadow-purple-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {loading ? 'AUTHENTICATING...' : 'INITIALIZE UPLINK'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-[10px] text-gray-600 font-mono">
+          SYSTEM INTEGRITY: 100% // ENCRYPTION: AES-256
         </div>
-      </main>
+      </motion.div>
     </div>
-  );
+  )
 }
