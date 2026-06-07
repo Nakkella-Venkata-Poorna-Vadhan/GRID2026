@@ -1,11 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-// ✅ FIXED: Using your specific API Key
-const genAI = new GoogleGenerativeAI("AIzaSyDRhQWMjIPFt0kl-k94XmzBfvuR1gLlSrk");
-
 export async function POST(req) {
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ 
+        reply: "CONNECTION FAULT: GEMINI_API_KEY is not configured in the .env file. Please add your Gemini API Key." 
+      });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
     const { message, groupData } = await req.json();
 
     // 1. Define the AI's Personality & Knowledge Base

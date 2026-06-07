@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
 import Leaderboard from '@/components/Leaderboard'
 import Workspace from '@/components/Workspace'
+import AIAssistant from '@/components/AIAssistant'
 
 // --- 1. MAIN CONTENT COMPONENT ---
 function StudentContent() {
@@ -140,6 +141,11 @@ function StudentContent() {
   // --- EDIT PROFILE LOGIC ---
   const handleRequestEdit = async () => { if (!editGithub) return alert("Github required"); await supabase.from('groups').update({ edit_request: { github_username: editGithub, team_photos: editPhotos } }).eq('id', id); setIsEditingProfile(false); alert("Request Sent.") }
   const captureEditPhoto = async (index) => { /* Reuse capture logic for edits if needed */ } 
+  const cancelEdit = () => {
+      setIsEditingProfile(false)
+      setEditGithub(groupData?.github_username || '')
+      setEditPhotos(groupData?.team_photos || [])
+  }
 
   if (!groupData || !config) return <div className="bg-black h-screen text-green-500 flex items-center justify-center font-mono">LOADING SYSTEM...</div>
 
@@ -219,7 +225,11 @@ function StudentContent() {
                         </div>
                     </div>
                 )}
-                {config.is_active && groupData.assigned_problem && (<div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-2xl select-none"><h2 className="font-bold text-xl mb-4 text-cyan-400">MISSION BRIEFING</h2><div className="font-mono text-gray-300 whitespace-pre-wrap">{groupData.assigned_problem}</div></div>)}
+                {config.is_active && groupData.assigned_problem && (
+                  <div className="mt-8 border border-white/10 rounded-2xl overflow-hidden h-[75vh] min-h-[550px]">
+                    <Workspace groupData={groupData} assignedProblem={groupData.assigned_problem} />
+                  </div>
+                )}
             </div>
             
             <AnimatePresence>{showLeaderboard && (<motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 20 }} className="absolute top-0 right-0 h-full w-full md:w-[400px] z-40 p-4"><Leaderboard /></motion.div>)}</AnimatePresence>
@@ -326,6 +336,7 @@ function StudentContent() {
             {/* ANNOUNCEMENT POPUP */}
             {activePopup && (<motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"><div className="w-full max-w-lg bg-black/90 border border-purple-500 rounded-2xl p-8 shadow-[0_0_50px_rgba(168,85,247,0.3)] relative overflow-hidden"><h2 className="text-purple-400 font-bold text-xl mb-4 tracking-widest flex items-center gap-2"><span className="animate-pulse">📡</span> INCOMING TRANSMISSION</h2><p className="text-2xl font-light text-white mb-8 leading-relaxed">{activePopup.message}</p><button onClick={() => setActivePopup(null)} className="w-full bg-purple-600 hover:bg-purple-500 py-3 rounded-lg font-bold transition-all">ACKNOWLEDGE</button></div></motion.div>)}
         </AnimatePresence>
+        <AIAssistant groupData={groupData} />
     </div>
   )
 }
